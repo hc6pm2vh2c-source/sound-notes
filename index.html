@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Заметки саундчека</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body { font-family: -apple-system, Arial; padding: 14px; }
+    h2 { margin-bottom: 10px; }
+    textarea, input {
+      width: 100%; padding: 10px; font-size: 16px;
+      border-radius: 10px; border: 1px solid #ddd;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 12px; font-size: 16px;
+      border-radius: 10px; border: 1px solid #ccc;
+      background: #fff; width: 100%;
+    }
+    .note {
+      border: 1px solid #eee; border-radius: 12px;
+      padding: 10px; margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎛 Заметки саундчека</h2>
+
+  <input id="song" placeholder="Песня / сцена (необязательно)">
+  <textarea id="text" placeholder="Например: Куплет 2 — вокал +1.5 dB, меньше 3k"></textarea>
+  <button onclick="addNote()">➕ Добавить заметку</button>
+
+  <div id="list"></div>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.ready(); tg.expand(); }
+
+  const KEY = "sound_notes_simple";
+  let notes = JSON.parse(localStorage.getItem(KEY) || "[]");
+
+  function save() {
+    localStorage.setItem(KEY, JSON.stringify(notes));
+    render();
+  }
+
+  function addNote() {
+    const text = document.getElementById("text").value.trim();
+    const song = document.getElementById("song").value.trim();
+    if (!text) return alert("Напиши заметку 🙂");
+
+    notes.push({
+      text, song,
+      time: new Date().toLocaleTimeString("ru-RU", {hour:"2-digit", minute:"2-digit"})
+    });
+
+    document.getElementById("text").value = "";
+    save();
+  }
+
+  function render() {
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+    notes.forEach(n => {
+      const d = document.createElement("div");
+      d.className = "note";
+      d.innerHTML = `<b>${n.song || "Общее"}</b><br>${n.text}<br><small>${n.time}</small>`;
+      list.appendChild(d);
+    });
+  }
+
+  render();
+</script>
+</body>
+</html> 
