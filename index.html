@@ -5,25 +5,73 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Заметки саундчека</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <style>
-    body { font-family: -apple-system, Arial; padding: 14px; }
-    h2 { margin-bottom: 10px; }
-    textarea, input {
-      width: 100%; padding: 10px; font-size: 16px;
-      border-radius: 10px; border: 1px solid #ddd;
+    :root { color-scheme: dark; }
+
+    body {
+      font-family: -apple-system, Arial, sans-serif;
+      margin: 0;
+      padding: 14px;
+      background: #0b0b0f;
+      color: #ffffff;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+      color: #ffffff;
+      margin-bottom: 10px;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(255,255,255,0.5);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.1);
+      color: #ffffff;
       margin-bottom: 10px;
     }
-    button {
-      padding: 12px; font-size: 16px;
-      border-radius: 10px; border: 1px solid #ccc;
-      background: #fff; width: 100%;
-    }
+
     .note {
-      border: 1px solid #eee; border-radius: 12px;
-      padding: 10px; margin-top: 10px;
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .note-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .note-time {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      opacity: 0.6;
     }
   </style>
 </head>
+
 <body>
   <h2>🎛 Заметки саундчека</h2>
 
@@ -33,44 +81,74 @@
 
   <div id="list"></div>
 
-<script>
-  const tg = window.Telegram?.WebApp;
-  if (tg) { tg.ready(); tg.expand(); }
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
 
-  const KEY = "sound_notes_simple";
-  let notes = JSON.parse(localStorage.getItem(KEY) || "[]");
+    const KEY = "sound_notes_simple";
+    let notes = JSON.parse(localStorage.getItem(KEY) || "[]");
 
-  function save() {
-    localStorage.setItem(KEY, JSON.stringify(notes));
+    function save() {
+      localStorage.setItem(KEY, JSON.stringify(notes));
+      render();
+    }
+
+    function addNote() {
+      const textEl = document.getElementById("text");
+      const songEl = document.getElementById("song");
+
+      const text = textEl.value.trim();
+      const song = songEl.value.trim();
+
+      if (!text) {
+        alert("Напиши заметку 🙂");
+        return;
+      }
+
+      notes.push({
+        text,
+        song,
+        time: new Date().toLocaleTimeString("ru-RU", {
+          hour: "2-digit",
+          minute: "2-digit"
+        })
+      });
+
+      textEl.value = "";
+      save();
+    }
+
+    function render() {
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+
+      notes.forEach(n => {
+        const d = document.createElement("div");
+        d.className = "note";
+
+        const title = document.createElement("div");
+        title.className = "note-title";
+        title.textContent = n.song || "Общее";
+
+        const text = document.createElement("div");
+        text.textContent = n.text;
+
+        const time = document.createElement("span");
+        time.className = "note-time";
+        time.textContent = n.time;
+
+        d.appendChild(title);
+        d.appendChild(text);
+        d.appendChild(time);
+
+        list.appendChild(d);
+      });
+    }
+
     render();
-  }
-
-  function addNote() {
-    const text = document.getElementById("text").value.trim();
-    const song = document.getElementById("song").value.trim();
-    if (!text) return alert("Напиши заметку 🙂");
-
-    notes.push({
-      text, song,
-      time: new Date().toLocaleTimeString("ru-RU", {hour:"2-digit", minute:"2-digit"})
-    });
-
-    document.getElementById("text").value = "";
-    save();
-  }
-
-  function render() {
-    const list = document.getElementById("list");
-    list.innerHTML = "";
-    notes.forEach(n => {
-      const d = document.createElement("div");
-      d.className = "note";
-      d.innerHTML = `<b>${n.song || "Общее"}</b><br>${n.text}<br><small>${n.time}</small>`;
-      list.appendChild(d);
-    });
-  }
-
-  render();
-</script>
+  </script>
 </body>
-</html> 
+</html>
